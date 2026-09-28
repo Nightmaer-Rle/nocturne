@@ -1,0 +1,324 @@
+/* ═══════════════════════════════════════════════════════════
+   NOCTURNE — base.css
+   Tokens, reset, typography, ambient layers
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Surfaces: cold night, wet asphalt ── */
+  --ink-900: #05070c;
+  --ink-800: #080b12;
+  --ink-700: #0c1019;
+  --ink-600: #111725;
+  --ink-500: #18202f;
+  --ink-400: #222c3e;
+  --ink-300: #2f3b51;
+
+  /* ── Accent: sodium lamplight (overridable) ── */
+  --accent: #e0a63c;
+  --accent-hi: #f6cd77;
+  --accent-lo: #8a5f18;
+  --accent-glow: rgba(224, 166, 60, .35);
+
+  /* ── Semantic ── */
+  --blood: #c0392b;
+  --blood-hi: #e85a48;
+  --sage: #6fae8c;
+  --paper: #e8e2d4;
+  --paper-dim: #b9b3a4;
+
+  /* ── Text ── */
+  --tx-hi: #ece7db;
+  --tx: #c3bfb4;
+  --tx-lo: #7d7a72;
+  --tx-faint: #55534e;
+
+  /* ── Line work ── */
+  --line: rgba(224, 166, 60, .16);
+  --line-soft: rgba(255, 255, 255, .07);
+  --line-hard: rgba(224, 166, 60, .38);
+
+  /* ── Type ── */
+  --f-display: "Cinzel", "Trajan Pro", "Palatino Linotype", Georgia, serif;
+  --f-type: "Special Elite", "Courier New", Courier, monospace;
+  --f-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  --step--1: clamp(.78rem, .74rem + .2vw, .88rem);
+  --step-0: clamp(.92rem, .87rem + .25vw, 1.02rem);
+  --step-1: clamp(1.08rem, 1rem + .4vw, 1.25rem);
+  --step-2: clamp(1.3rem, 1.15rem + .7vw, 1.6rem);
+  --step-3: clamp(1.65rem, 1.4rem + 1.2vw, 2.3rem);
+  --step-4: clamp(2.1rem, 1.6rem + 2.4vw, 3.6rem);
+
+  /* ── Space ── */
+  --sp-1: .35rem;  --sp-2: .6rem;   --sp-3: .9rem;
+  --sp-4: 1.4rem;  --sp-5: 2.1rem;  --sp-6: 3.2rem;
+  --sp-7: 4.8rem;
+
+  /* ── Form ── */
+  --r-sm: 3px;  --r: 5px;  --r-lg: 9px;
+  --shadow: 0 18px 50px -12px rgba(0, 0, 0, .85);
+  --shadow-sm: 0 6px 18px -6px rgba(0, 0, 0, .7);
+  --inset: inset 0 1px 0 rgba(255, 255, 255, .04);
+
+  /* ── Motion ── */
+  --ease: cubic-bezier(.22, .61, .36, 1);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --dur: .32s;
+  --dur-fast: .16s;
+  --dur-slow: .8s;
+
+  --z-scene: 40; --z-toast: 70; --z-modal: 90;
+
+  --text-scale: 1;
+}
+
+[data-theme="crimson"] {
+  --accent: #d9534f; --accent-hi: #f2857f; --accent-lo: #7c2622; --accent-glow: rgba(217, 83, 79, .35);
+}
+[data-theme="teal"] {
+  --accent: #46b0a8; --accent-hi: #84e0d6; --accent-lo: #1f6159; --accent-glow: rgba(70, 176, 168, .35);
+}
+[data-theme="violet"] {
+  --accent: #9d7bd4; --accent-hi: #c6aef0; --accent-lo: #4c3577; --accent-glow: rgba(157, 123, 212, .35);
+}
+
+/* ── Reset ────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+
+html {
+  font-size: calc(16px * var(--text-scale));
+  -webkit-text-size-adjust: 100%;
+  scrollbar-color: var(--ink-300) var(--ink-900);
+}
+
+body {
+  min-height: 100dvh;
+  font-family: var(--f-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  color: var(--tx);
+  background:
+    radial-gradient(120% 90% at 50% -10%, #16203a 0%, transparent 55%),
+    radial-gradient(90% 70% at 12% 108%, #1a1428 0%, transparent 60%),
+    radial-gradient(80% 60% at 92% 88%, #0f1c22 0%, transparent 55%),
+    linear-gradient(#0a0e16, #05070c 70%);
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Body is a fixed stage; screens scroll internally */
+body::after {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E");
+  opacity: .028;
+  mix-blend-mode: overlay;
+}
+
+img, svg { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { background: none; border: 0; cursor: pointer; }
+ul, ol { list-style: none; }
+table { border-collapse: collapse; width: 100%; }
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+::selection { background: var(--accent); color: var(--ink-900); }
+
+/* ── Scrollbars ───────────────────────────────────────── */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: var(--ink-900); }
+*::-webkit-scrollbar-thumb {
+  background: var(--ink-300);
+  border: 2px solid var(--ink-900);
+  border-radius: 99px;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--accent-lo); }
+
+/* ── Typography primitives ────────────────────────────── */
+h1, h2, h3, h4 { font-weight: 600; line-height: 1.15; color: var(--tx-hi); }
+
+.logo {
+  font-family: var(--f-display);
+  font-size: var(--step-4);
+  font-weight: 700;
+  letter-spacing: .22em;
+  color: var(--tx-hi);
+  position: relative;
+  text-shadow: 0 0 30px var(--accent-glow);
+}
+.logo::after {
+  content: attr(data-text);
+  position: absolute; inset: 0;
+  color: var(--accent);
+  opacity: .0;
+  animation: logo-glitch 7s 2s infinite steps(1);
+  pointer-events: none;
+}
+@keyframes logo-glitch {
+  0%, 92%, 100% { opacity: 0; transform: none; clip-path: inset(0 0 0 0); }
+  93% { opacity: .85; transform: translate(-2px, 1px); clip-path: inset(12% 0 62% 0); }
+  95% { opacity: .6; transform: translate(2px, -1px); clip-path: inset(58% 0 18% 0); }
+  97% { opacity: .5; transform: none; clip-path: inset(30% 0 44% 0); }
+}
+
+.tag {
+  font-family: var(--f-body);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  padding: .1rem .45rem;
+  border-radius: 99px;
+  background: var(--ink-400);
+  color: var(--tx-lo);
+  vertical-align: middle;
+}
+
+.stamp {
+  display: inline-block;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: var(--step-1);
+  letter-spacing: .12em;
+  color: var(--blood);
+  border: 3px double var(--blood);
+  padding: .35rem .9rem;
+  transform: rotate(-7deg);
+  opacity: .82;
+  text-shadow: 0 0 12px rgba(192, 57, 43, .5);
+}
+
+/* ── Ambient layers ───────────────────────────────────── */
+#rain-canvas {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .55;
+  transition: opacity .9s var(--ease-out);
+}
+
+/* The rain belongs to the title screen. Once loading is done it is gone —
+   no backdrop to compete with the menu. The loop is stopped in JS too, so
+   this is a fade over a canvas nobody is drawing into any more. */
+html[data-booted="on"] #rain-canvas { opacity: 0; }
+
+.vignette {
+  position: fixed; inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(115% 100% at 50% 45%, transparent 42%, rgba(0,0,0,.55) 88%, rgba(0,0,0,.85) 100%);
+}
+
+.scanlines {
+  position: fixed; inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,.028) 0 1px,
+    transparent 1px 3px
+  );
+  opacity: .8;
+  mix-blend-mode: soft-light;
+}
+
+.flicker {
+  position: fixed; inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: var(--accent);
+  opacity: .012;
+  animation: flicker 5.5s steps(24) infinite;
+  mix-blend-mode: screen;
+}
+@keyframes flicker {
+  0%, 100% { opacity: .012; }
+  8%  { opacity: .022; }
+  12% { opacity: .008; }
+  40% { opacity: .026; }
+  42% { opacity: .01; }
+  70% { opacity: .018; }
+}
+
+/* A single distant streetlight cone, for depth */
+body::before {
+  content: "";
+  position: fixed;
+  top: -18vh; left: 62%;
+  width: 62vw; height: 92vh;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at top, var(--accent-glow), transparent 62%);
+  opacity: .3;
+  filter: blur(14px);
+}
+
+/* ── Screen system ────────────────────────────────────── */
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: clamp(1rem, 3vw, 2.6rem);
+  scrollbar-gutter: stable;
+}
+.screen--active { display: block; animation: screen-in var(--dur-slow) var(--ease-out) both; }
+
+@keyframes screen-in {
+  from { opacity: 0; transform: translateY(14px) scale(.994); filter: blur(3px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+
+.screen--overlay {
+  background: rgba(3, 5, 9, .82);
+  backdrop-filter: blur(9px) saturate(.7);
+  -webkit-backdrop-filter: blur(9px) saturate(.7);
+  display: none;
+  place-items: center;
+  padding: clamp(.6rem, 2vw, 2rem);
+}
+.screen--overlay.screen--active {
+  display: grid;
+  animation: overlay-in .26s var(--ease-out) both;
+}
+@keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Motion preferences ───────────────────────────────── */
+[data-motion="off"] *,
+[data-motion="off"] *::before,
+[data-motion="off"] *::after {
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+}
+[data-rain="off"] #rain-canvas { display: none; }
+[data-rain="off"] .flicker { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+  }
+  #rain-canvas { opacity: .25; }
+}
+
+@media (prefers-contrast: more) {
+  :root { --tx: #e2ded2; --tx-lo: #a9a49a; --line: rgba(224,166,60,.4); }
+  .vignette, .scanlines { display: none; }
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}

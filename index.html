@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="noir">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>NOCTURNE — A Detective's Casebook</title>
+<meta name="description" content="Nocturne: a noir deduction game. Twenty cases, four tiers of difficulty. Find the truth before the clock runs out." />
+<meta name="theme-color" content="#0a0d14" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Cinzel:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/screens.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%8D%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+
+<!-- ═══════════ AMBIENT LAYERS ═══════════ -->
+<canvas id="rain-canvas" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="scanlines" aria-hidden="true"></div>
+<div class="flicker" aria-hidden="true"></div>
+
+<!-- ═══════════ BOOT / TITLE ═══════════ -->
+<section class="screen screen--active" id="screen-boot" data-screen="boot">
+  <div class="boot">
+    <div class="boot__badge" aria-hidden="true">
+      <svg viewBox="0 0 120 120" width="120" height="120">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".35"/>
+        <circle cx="60" cy="60" r="44" fill="none" stroke="currentColor" stroke-width="3"/>
+        <line x1="60" y1="60" x2="60" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <line x1="60" y1="60" x2="80" y2="70" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="60" cy="60" r="4" fill="currentColor"/>
+      </svg>
+    </div>
+    <h1 class="boot__title" data-text="NOCTURNE">NOCTURNE</h1>
+    <p class="boot__sub">A Detective's Casebook</p>
+    <div class="boot__bar"><i id="boot-fill"></i></div>
+    <p class="boot__status" id="boot-status">Opening the casebook…</p>
+  </div>
+</section>
+
+<!-- ═══════════ MAIN MENU ═══════════ -->
+<section class="screen" id="screen-menu" data-screen="menu">
+  <div class="menu">
+    <header class="menu__head">
+      <h1 class="logo" data-text="NOCTURNE">NOCTURNE</h1>
+      <p class="logo__sub">Private Investigations &middot; est. 1947</p>
+    </header>
+
+    <nav class="menu__nav">
+      <button class="btn btn--primary btn--xl" data-nav="cases">
+        <span class="btn__key">1</span> Open Case Files
+      </button>
+      <button class="btn btn--xl" data-nav="continue">
+        <span class="btn__key">2</span> Resume Investigation <em id="resume-label" class="btn__em"></em>
+      </button>
+      <button class="btn btn--xl" data-nav="dossier">
+        <span class="btn__key">3</span> Detective Dossier
+      </button>
+      <button class="btn btn--xl" data-nav="board">
+        <span class="btn__key">4</span> Hall of Records
+      </button>
+      <div class="menu__row">
+        <button class="btn btn--sm" data-nav="settings">Settings</button>
+        <button class="btn btn--sm" data-nav="credits">Credits</button>
+      </div>
+    </nav>
+
+    <aside class="menu__card" id="menu-card">
+      <div class="rank-plate">
+        <div class="rank-plate__badge" id="rank-badge">R</div>
+        <div class="rank-plate__meta">
+          <p class="rank-plate__title" id="rank-title">Probationary Cadet</p>
+          <p class="rank-plate__xp"><span id="rank-xp">0</span> / <span id="rank-xp-max">500</span> merit</p>
+          <div class="meter"><i id="rank-fill" style="width:0%"></i></div>
+        </div>
+      </div>
+      <dl class="mini-stats">
+        <div><dt>Cases closed</dt><dd id="stat-closed">0</dd></div>
+        <div><dt>Perfect deductions</dt><dd id="stat-perfect">0</dd></div>
+        <div><dt>Total merit</dt><dd id="stat-merit">0</dd></div>
+      </dl>
+      <p class="menu__quote" id="menu-quote">&ldquo;The truth is a rope you pull; the rest is just waiting.&&rdquo;</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ═══════════ CASE SELECT ═══════════ -->
+<section class="screen" id="screen-cases" data-screen="cases">
+  <div class="topbar">
+    <button class="btn btn--ghost" data-nav="menu">&#8592; Menu</button>
+    <h2 class="topbar__title">Case Files</h2>
+    <div class="topbar__right">
+      <div class="segmented" role="tablist" id="tier-filter" aria-label="Filter by difficulty">
+        <button role="tab" data-tier="all" class="is-active">All</button>
+        <button role="tab" data-tier="easy">I</button>
+        <button role="tab" data-tier="medium">II</button>
+        <button role="tab" data-tier="hard">III</button>
+        <button role="tab" data-tier="expert">IV</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cases">
+    <div class="cases__progress">
+      <div class="meter meter--lg"><i id="campaign-fill" style="width:0%"></i></div>
+      <p><strong id="campaign-count">0</strong> of 20 cases closed &middot; <span id="campaign-stars">0</span> stars earned</p>
+    </div>
+    <div class="cases__grid" id="cases-grid"><!-- injected --></div>
+  </div>
+</section>
+
+<!-- ═══════════ DOSSIER (detective profile) ═══════════ -->
+<section class="screen" id="screen-dossier" data-screen="dossier">
+  <div class="topbar">
+    <button class="btn btn--ghost" data-nav="menu">&#8592; Menu</button>
+    <h2 class="topbar__title">Detective Dossier</h2>
+    <div class="topbar__right"></div>
+  </div>
+  <div class="dossier">
+    <div class="dossier__grid">
+      <section class="panel">
+        <h3 class="panel__title">Service Record</h3>
+        <dl class="stat-rows" id="dossier-stats"></dl>
+      </section>
+      <section class="panel">
+        <h3 class="panel__title">Commendations</h3>
+        <div class="ach-list" id="dossier-achievements"></div>
+      </section>
+      <section class="panel">
+        <h3 class="panel__title">Tiers</h3>
+        <div class="tier-list" id="dossier-tiers"></div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ HALL OF RECORDS (leaderboard) ═══════════ -->
+<section class="screen" id="screen-board" data-screen="board">
+  <div class="topbar">
+    <button class="btn btn--ghost" data-nav="menu">&#8592; Menu</button>
+    <h2 class="topbar__title">Hall of Records</h2>
+    <div class="topbar__right">
+      <label class="field field--inline">
+        <span>Detective</span>
+        <input id="callsign" type="text" maxlength="18" placeholder="enter callsign" />
+      </label>
+    </div>
+  </div>
+  <div class="board">
+    <p class="board__note" id="board-note">The ledger is offline. Standings shown from this machine's archive.</p>
+    <div class="board__wrap">
+      <table class="board__table">
+        <thead><tr><th>#</th><th>Detective</th><th>Tier IV cleared</th><th>Cases</th><th>Stars</th><th>Merit</th></tr></thead>
+        <tbody id="board-body"></tbody>
+      </table>
+    </div>
+    <button class="btn btn--primary" id="board-sync">Sync with Ledger Server</button>
+  </div>
+</section>
+
+<!-- ═══════════ BRIEFING ═══════════ -->
+<section class="screen" id="screen-briefing" data-screen="briefing">
+  <div class="brief">
+    <div class="brief__file">
+      <span class="stamp" id="brief-stamp">FILE 01</span>
+      <p class="brief__kicker" id="brief-kicker">CASE FILE</p>
+      <h2 class="brief__title" id="brief-title"></h2>
+      <p class="brief__meta" id="brief-meta"></p>
+      <div class="brief__body" id="brief-body"></div>
+      <div class="brief__parties" id="brief-parties"></div>
+    </div>
+    <aside class="brief__side">
+      <div class="panel panel--tight">
+        <h3 class="panel__title">Terms of Engagement</h3>
+        <div class="brief__terms" id="brief-terms"></div>
+      </div>
+      <div class="panel panel--tight">
+        <h3 class="panel__title">Difficulty</h3>
+        <div class="difficulty" id="brief-difficulty"></div>
+      </div>
+      <div class="brief__actions">
+        <button class="btn btn--primary btn--xl" id="brief-begin">Open the case &#8594;</button>
+        <button class="btn btn--ghost" data-nav="cases">Back to files</button>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ═══════════ INVESTIGATION HUB ═══════════ -->
+<section class="screen" id="screen-hub" data-screen="hub">
+  <div class="hud">
+    <div class="hud__left">
+      <button class="btn btn--icon" id="hub-menu" title="Menu (Esc)" aria-label="Menu">&#9776;</button>
+      <div class="hud__case">
+        <span class="hud__no" id="hud-no">CASE 01</span>
+        <span class="hud__name" id="hud-name">&mdash;</span>
+      </div>
+    </div>
+    <div class="hud__center">
+      <div class="hud__clock" id="hud-clock-wrap" hidden>
+        <span class="hud__clock-label">DEADLINE</span>
+        <span class="hud__clock-time" id="hud-clock">00:00</span>
+        <div class="meter meter--clock"><i id="hud-clock-fill"></i></div>
+      </div>
+      <div class="hud__clues" id="hud-clues">Evidence 0/0</div>
+    </div>
+    <div class="hud__right">
+      <button class="btn btn--icon" id="hub-hint" title="Consult the file (H)" aria-label="Hint">?</button>
+      <button class="btn btn--icon" id="hub-journal" title="Case journal (J)" aria-label="Journal">&#128220;</button>
+      <button class="btn btn--icon" id="hub-accuse" title="Make your accusation (A)" aria-label="Accuse">&#9876;</button>
+    </div>
+  </div>
+
+  <div class="hub">
+    <div class="hub__main">
+      <p class="hub__brief" id="hub-brief"></p>
+      <h3 class="hub__section">Points of Interest</h3>
+      <div class="loc-grid" id="loc-grid"><!-- injected --></div>
+    </div>
+    <aside class="hub__side">
+      <div class="panel panel--tight">
+        <h3 class="panel__title">Persons of Interest</h3>
+        <div class="suspect-list" id="hub-suspects"></div>
+      </div>
+      <div class="panel panel--tight">
+        <h3 class="panel__title">The Thread</h3>
+        <ul class="thread" id="hub-thread"></ul>
+      </div>
+    </aside>
+  </div>
+
+  <div class="hub__foot">
+    <div class="heat"><span>Case progress</span><div class="meter"><i id="hub-progress"></i></div></div>
+    <button class="btn btn--danger" id="hub-accuse-2">Make the Accusation</button>
+  </div>
+</section>
+
+<!-- ═══════════ SCENE (investigation modal) ═══════════ -->
+<section class="screen screen--overlay" id="screen-scene" data-screen="scene">
+  <div class="scene" role="dialog" aria-modal="true" aria-labelledby="scene-title">
+    <header class="scene__head">
+      <div>
+        <p class="scene__kicker" id="scene-kicker">LOCATION</p>
+        <h2 class="scene__title" id="scene-title"></h2>
+      </div>
+      <button class="btn btn--icon" id="scene-close" aria-label="Leave location">&#10005;</button>
+    </header>
+    <p class="scene__desc" id="scene-desc"></p>
+    <div class="scene__body">
+      <div class="scene__col">
+        <h3 class="scene__sub">Examine <span class="tag" id="scene-exam-count"></span></h3>
+        <ul class="exam-list" id="scene-exams"></ul>
+      </div>
+      <div class="scene__col">
+        <h3 class="scene__sub">Present <span class="tag" id="scene-suspect-count"></span></h3>
+        <ul class="present-list" id="scene-suspects"></ul>
+        <div class="log" id="scene-log"></div>
+      </div>
+    </div>
+    <footer class="scene__foot">
+      <p class="scene__hint">Select a hotspot to examine it, or select evidence from your journal to present it to someone.</p>
+      <button class="btn btn--primary" data-nav="journal">Open journal</button>
+    </footer>
+  </div>
+</section>
+
+<!-- ═══════════ JOURNAL ═══════════ -->
+<section class="screen screen--overlay" id="screen-journal" data-screen="journal">
+  <div class="journal" role="dialog" aria-modal="true" aria-label="Case journal">
+    <header class="journal__head">
+      <h2 id="journal-title">Case Journal</h2>
+      <button class="btn btn--icon" id="journal-close" aria-label="Close journal">&#10005;</button>
+    </header>
+    <nav class="tabs" id="journal-tabs">
+      <button class="is-active" data-tab="evidence">Evidence <span class="tab__n" id="tab-n-evidence">0</span></button>
+      <button data-tab="suspects">Suspects <span class="tab__n" id="tab-n-suspects">0</span></button>
+      <button data-tab="locations">Locations</button>
+      <button data-tab="notes">Notes</button>
+    </nav>
+    <div class="journal__body">
+      <div class="tabpane is-active" data-pane="evidence">
+        <div class="journal__toolbar">
+          <input type="search" id="evidence-search" placeholder="Search evidence…" aria-label="Search evidence" />
+          <select id="evidence-filter" aria-label="Filter by type">
+            <option value="all">All types</option>
+            <option value="physical">Physical</option>
+            <option value="testimony">Testimony</option>
+            <option value="document">Document</option>
+            <option value="observation">Observation</option>
+          </select>
+        </div>
+        <div class="evidence-grid" id="evidence-grid"></div>
+      </div>
+      <div class="tabpane" data-pane="suspects"><div class="suspect-cards" id="journal-suspects"></div></div>
+      <div class="tabpane" data-pane="locations"><div class="loc-notes" id="journal-locations"></div></div>
+      <div class="tabpane" data-pane="notes">
+        <textarea id="notes-area" class="notes" placeholder="Type freely. Notes save with the case."></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DEDUCTION / ACCUSATION ═══════════ -->
+<section class="screen screen--overlay" id="screen-accuse" data-screen="accuse">
+  <div class="accuse" role="dialog" aria-modal="true" aria-label="Make your accusation">
+    <header class="accuse__head">
+      <h2>Formal Accusation</h2>
+      <div class="accuse__progress" id="accuse-progress"></div>
+      <button class="btn btn--icon" id="accuse-close" aria-label="Withdraw">&#10005;</button>
+    </header>
+    <div class="accuse__body" id="accuse-body"><!-- injected --></div>
+    <footer class="accuse__foot">
+      <p class="accuse__warn" id="accuse-warn">An accusation without evidence is a libel suit waiting to happen.</p>
+      <div class="accuse__acts">
+        <button class="btn btn--ghost" id="accuse-reset">Clear</button>
+        <button class="btn btn--primary" id="accuse-submit" disabled>Submit to the Prosecutor</button>
+      </div>
+    </footer>
+  </div>
+</section>
+
+<!-- ═══════════ VERDICT ═══════════ -->
+<section class="screen" id="screen-verdict" data-screen="verdict">
+  <div class="verdict">
+    <div class="verdict__banner" id="verdict-banner"></div>
+    <h2 class="verdict__title" id="verdict-title"></h2>
+    <div class="verdict__stars" id="verdict-stars"></div>
+    <div class="verdict__grade"><span id="verdict-grade">C</span><small id="verdict-score">0 pts</small></div>
+    <div class="verdict__grid">
+      <section class="panel">
+        <h3 class="panel__title">Breakdown</h3>
+        <dl class="stat-rows" id="verdict-breakdown"></dl>
+      </section>
+      <section class="panel">
+        <h3 class="panel__title">The Truth</h3>
+        <div class="truth" id="verdict-truth"></div>
+      </section>
+    </div>
+    <div class="verdict__acts">
+      <button class="btn" id="verdict-retry">Reopen the file</button>
+      <button class="btn btn--primary" id="verdict-next">Next case &#8594;</button>
+      <button class="btn btn--ghost" data-nav="cases">Case files</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SETTINGS ═══════════ -->
+<section class="screen screen--overlay" id="screen-settings" data-screen="settings">
+  <div class="panel panel--wide" role="dialog" aria-modal="true" aria-label="Settings">
+    <header class="settings__head">
+      <h2>Settings</h2>
+      <button class="btn btn--icon" id="settings-close" aria-label="Close settings">&#10005;</button>
+    </header>
+    <div class="settings__body">
+      <div class="setting">
+        <label for="s-music">Music</label>
+        <input type="range" id="s-music" min="0" max="100" value="45" />
+        <output id="o-music">45</output>
+      </div>
+      <div class="setting">
+        <label for="s-sfx">Effects</label>
+        <input type="range" id="s-sfx" min="0" max="100" value="70" />
+        <output id="o-sfx">70</output>
+      </div>
+      <div class="setting setting--check">
+        <label for="s-rain">Rain &amp; atmosphere</label>
+        <input type="checkbox" id="s-rain" checked />
+      </div>
+      <div class="setting setting--check">
+        <label for="s-motion">Interface motion</label>
+        <input type="checkbox" id="s-motion" checked />
+      </div>
+      <div class="setting">
+        <label for="s-textsize">Text size</label>
+        <input type="range" id="s-textsize" min="90" max="130" step="5" value="100" />
+        <output id="o-textsize">100%</output>
+      </div>
+      <div class="setting">
+        <label for="s-hints">Hint policy</label>
+        <select id="s-hints">
+          <option value="on">Allowed (costs merit)</option>
+          <option value="limited">Limited to one per case</option>
+          <option value="off">Disabled</option>
+        </select>
+      </div>
+      <div class="setting">
+        <label for="s-autosave">Autosave</label>
+        <select id="s-autosave">
+          <option value="on">On</option>
+          <option value="off">Off</option>
+        </select>
+      </div>
+      <div class="setting">
+        <label for="s-accents">Accent colour</label>
+        <select id="s-accents">
+          <option value="amber">Amber</option>
+          <option value="crimson">Crimson</option>
+          <option value="teal">Teal</option>
+          <option value="violet">Violet</option>
+        </select>
+      </div>
+    </div>
+    <footer class="settings__foot">
+      <button class="btn btn--danger" id="s-wipe">Erase all records</button>
+      <button class="btn btn--primary" data-nav="menu">Done</button>
+    </footer>
+  </div>
+</section>
+
+<!-- ═══════════ CREDITS ═══════════ -->
+<section class="screen" id="screen-credits" data-screen="credits">
+  <div class="topbar">
+    <button class="btn btn--ghost" data-nav="menu">&#8592; Menu</button>
+    <h2 class="topbar__title">Credits</h2>
+    <div class="topbar__right"></div>
+  </div>
+  <div class="credits">
+    <h3>NOCTURNE</h3>
+    <p>A Detective's Casebook — a complete deduction game of twenty cases.</p>
+    <h4>Technology</h4>
+    <ul>
+      <li><b>HTML5</b> — semantic structure &amp; accessibility layer</li>
+      <li><b>CSS3</b> — custom-property design system, noir theming, keyframed ambience</li>
+      <li><b>JavaScript (ES2022)</b> — case engine, deduction logic, procedural audio, canvas rain</li>
+      <li><b>Python 3</b> — <code>server/app.py</code>: stdlib HTTP server, JSON ledger, standings API</li>
+      <li><b>Web Audio API</b> — every sound synthesised at runtime; no asset downloads</li>
+    </ul>
+    <h4>Design</h4>
+    <p>Ink, sodium lamplight, and rain. Type set in Special Elite, Cinzel and Inter.</p>
+    <h4>With thanks</h4>
+    <p>To every detective who ever worked a case nobody thanked them for.</p>
+    <p class="credits__sig">— The Partners, Ashgrove &amp; Vale</p>
+  </div>
+</section>
+
+<!-- ═══════════ PAUSE ═══════════ -->
+<section class="screen screen--overlay" id="screen-pause" data-screen="pause">
+  <div class="panel panel--narrow" role="dialog" aria-modal="true" aria-label="Paused">
+    <h2 class="panel__title">Case suspended</h2>
+    <div class="pause__acts">
+      <button class="btn btn--primary" data-nav="resume">Resume</button>
+      <button class="btn" data-nav="journal">Journal</button>
+      <button class="btn" data-nav="settings">Settings</button>
+      <button class="btn" data-nav="menu">Return to the menu</button>
+      <button class="btn btn--danger" data-nav="cases">Abandon the case &amp; return to files</button>
+    </div>
+    <p class="pause__foot">Progress is saved automatically. Returning to the menu keeps it; abandoning erases it.</p>
+  </div>
+</section>
+
+<!-- ═══════════ TOASTS ═══════════ -->
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<!-- ═══════════ MODAL (generic) ═══════════ -->
+<div class="modal" id="modal" hidden>
+  <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title"></h2>
+    <div id="modal-body"></div>
+    <div class="modal__acts" id="modal-acts"></div>
+  </div>
+</div>
+
+<script src="assets/js/util.js"></script>
+<script src="assets/js/audio.js"></script>
+<script src="assets/js/rain.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/cases-a.js"></script>
+<script src="assets/js/cases-b.js"></script>
+<script src="assets/js/cases-c.js"></script>
+<script src="assets/js/cases-d.js"></script>
+<script src="assets/js/cases-e.js"></script>
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
